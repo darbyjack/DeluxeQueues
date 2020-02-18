@@ -1,14 +1,19 @@
 
-\.idea/libraries/
-
-\.idea/
-
+/target/
+.settings
+.classpath
+.project
+/.idea/
 *.iml
+dependency-reduced-pom.xml
+.floo*
+# Ignore Gradle project-specific cache directory
+.gradle
 
-target/classes/
+# Ignore Gradle build output directory
+build
 
-target/maven-archiver/
+# IntelliJ
+.idea
 
-target/maven-status/maven-compiler-plugin/compile/default-compile/
-
-target/
+out
