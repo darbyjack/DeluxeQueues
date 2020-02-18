@@ -2,7 +2,7 @@ package me.glaremasters.deluxequeues.queues;
 
 import ch.jalu.configme.SettingsManager;
 import co.aikar.commands.ACFBungeeUtil;
-import me.glaremasters.deluxequeues.DeluxeQueues;
+import me.glaremasters.deluxequeues.DeluxeQueuesPlugin;
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions;
 import me.glaremasters.deluxequeues.tasks.QueueMoveTask;
 import net.md_5.bungee.api.ChatMessageType;
@@ -21,24 +21,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class DeluxeQueue {
 
-    private DeluxeQueues deluxeQueues;
-    private LinkedList<QueuePlayer> queue = new LinkedList<>();
-    private ServerInfo server;
-    private int delayLength;
-    private int playersRequired;
-    private int maxSlots;
-    private SettingsManager settingsManager;
-    private String notifyMethod;
+    private final DeluxeQueuesPlugin deluxeQueuesPlugin;
+    private final LinkedList<QueuePlayer> queue = new LinkedList<>();
+    private final ServerInfo server;
+    private final int delayLength;
+    private final int playersRequired;
+    private final int maxSlots;
+    private final SettingsManager settingsManager;
+    private final String notifyMethod;
 
-    public DeluxeQueue(DeluxeQueues deluxeQueues, ServerInfo server, int playersRequired, int maxSlots) {
-        this.deluxeQueues = deluxeQueues;
+    public DeluxeQueue(DeluxeQueuesPlugin deluxeQueuesPlugin, ServerInfo server, int playersRequired, int maxSlots) {
+        this.deluxeQueuesPlugin = deluxeQueuesPlugin;
         this.server = server;
-        this.settingsManager = deluxeQueues.getSettingsHandler().getSettingsManager();
+        this.settingsManager = deluxeQueuesPlugin.getSettingsHandler().getSettingsManager();
         this.delayLength = settingsManager.getProperty(ConfigOptions.DELAY_LENGTH);
         this.playersRequired = playersRequired;
         this.maxSlots = maxSlots;
         this.notifyMethod = settingsManager.getProperty(ConfigOptions.INFORM_METHOD);
-        deluxeQueues.getProxy().getScheduler().schedule(deluxeQueues, new QueueMoveTask(this, server), 0, delayLength, TimeUnit.SECONDS);
+        deluxeQueuesPlugin.getProxy().getScheduler().schedule(deluxeQueuesPlugin, new QueueMoveTask(this, server), 0, delayLength, TimeUnit.SECONDS);
     }
 
     /**
@@ -103,7 +103,7 @@ public class DeluxeQueue {
                 player.getPlayer().sendMessage(new TextComponent(ACFBungeeUtil.color(message)));
                 break;
             case "title":
-                Title title = deluxeQueues.getProxy().createTitle();
+                Title title = deluxeQueuesPlugin.getProxy().createTitle();
                 title.title(new TextComponent(ACFBungeeUtil.color(title_top)));
                 title_bottom = title_bottom.replace("{pos}", String.valueOf(getQueuePos(player) + 1));
                 title_bottom = title_bottom.replace("{total}", String.valueOf(queue.size()));
@@ -113,8 +113,8 @@ public class DeluxeQueue {
         }
     }
 
-    public DeluxeQueues getDeluxeQueues() {
-        return this.deluxeQueues;
+    public DeluxeQueuesPlugin getDeluxeQueuesPlugin() {
+        return this.deluxeQueuesPlugin;
     }
 
     public LinkedList<QueuePlayer> getQueue() {
@@ -146,6 +146,6 @@ public class DeluxeQueue {
     }
 
     public String toString() {
-        return "DeluxeQueue(deluxeQueues=" + this.getDeluxeQueues() + ", queue=" + this.getQueue() + ", server=" + this.getServer() + ", delayLength=" + this.getDelayLength() + ", playersRequired=" + this.getPlayersRequired() + ", maxSlots=" + this.getMaxSlots() + ", settingsManager=" + this.getSettingsManager() + ", notifyMethod=" + this.getNotifyMethod() + ")";
+        return "DeluxeQueue(deluxeQueues=" + this.getDeluxeQueuesPlugin() + ", queue=" + this.getQueue() + ", server=" + this.getServer() + ", delayLength=" + this.getDelayLength() + ", playersRequired=" + this.getPlayersRequired() + ", maxSlots=" + this.getMaxSlots() + ", settingsManager=" + this.getSettingsManager() + ", notifyMethod=" + this.getNotifyMethod() + ")";
     }
 }

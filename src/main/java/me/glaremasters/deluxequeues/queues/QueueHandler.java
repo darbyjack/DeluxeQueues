@@ -1,7 +1,7 @@
 package me.glaremasters.deluxequeues.queues;
 
 import ch.jalu.configme.SettingsManager;
-import me.glaremasters.deluxequeues.DeluxeQueues;
+import me.glaremasters.deluxequeues.DeluxeQueuesPlugin;
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -20,11 +20,11 @@ public class QueueHandler {
     private List<DeluxeQueue> queues;
     private List<ServerInfo> servers;
     private SettingsManager settingsManager;
-    private DeluxeQueues deluxeQueues;
+    private DeluxeQueuesPlugin deluxeQueuesPlugin;
 
-    public QueueHandler(SettingsManager settingsManager, DeluxeQueues deluxeQueues) {
+    public QueueHandler(SettingsManager settingsManager, DeluxeQueuesPlugin deluxeQueuesPlugin) {
         this.settingsManager = settingsManager;
-        this.deluxeQueues = deluxeQueues;
+        this.deluxeQueuesPlugin = deluxeQueuesPlugin;
         this.queues = new ArrayList<>();
         this.servers = new ArrayList<>();
     }
@@ -93,10 +93,10 @@ public class QueueHandler {
         settingsManager.getProperty(ConfigOptions.QUEUE_SERVERS).forEach(s -> {
             try {
                 String[] split = s.split(";");
-                DeluxeQueue queue = new DeluxeQueue(deluxeQueues, deluxeQueues.getProxy().getServerInfo(split[0]), Integer.valueOf(split[1]), Integer.valueOf(split[2]));
+                DeluxeQueue queue = new DeluxeQueue(deluxeQueuesPlugin, deluxeQueuesPlugin.getProxy().getServerInfo(split[0]), Integer.valueOf(split[1]), Integer.valueOf(split[2]));
                 createQueue(queue);
             } catch (Exception ex) {
-                deluxeQueues.getLogger().warning("It seems like one of your servers was configured invalidly in the config.");
+                deluxeQueuesPlugin.getLogger().warning("It seems like one of your servers was configured invalidly in the config.");
             }
         });
     }
@@ -113,7 +113,7 @@ public class QueueHandler {
         return this.settingsManager;
     }
 
-    public DeluxeQueues getDeluxeQueues() {
-        return this.deluxeQueues;
+    public DeluxeQueuesPlugin getDeluxeQueuesPlugin() {
+        return this.deluxeQueuesPlugin;
     }
 }

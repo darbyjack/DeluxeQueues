@@ -3,7 +3,6 @@ package me.glaremasters.deluxequeues.tasks;
 import me.glaremasters.deluxequeues.queues.DeluxeQueue;
 import me.glaremasters.deluxequeues.queues.QueuePlayer;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 /**
  * Created by Glare

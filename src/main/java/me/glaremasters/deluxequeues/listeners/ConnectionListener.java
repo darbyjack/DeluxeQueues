@@ -1,7 +1,7 @@
 package me.glaremasters.deluxequeues.listeners;
 
 import ch.jalu.configme.SettingsManager;
-import me.glaremasters.deluxequeues.DeluxeQueues;
+import me.glaremasters.deluxequeues.DeluxeQueuesPlugin;
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions;
 import me.glaremasters.deluxequeues.queues.DeluxeQueue;
 import me.glaremasters.deluxequeues.queues.QueueHandler;
@@ -21,14 +21,14 @@ import net.md_5.bungee.event.EventPriority;
  */
 public class ConnectionListener implements Listener {
 
-    private DeluxeQueues deluxeQueues;
+    private DeluxeQueuesPlugin deluxeQueuesPlugin;
     private QueueHandler queueHandler;
     private SettingsManager settingsManager;
 
-    public ConnectionListener(DeluxeQueues deluxeQueues) {
-        this.deluxeQueues = deluxeQueues;
-        this.queueHandler = deluxeQueues.getQueueHandler();
-        this.settingsManager = deluxeQueues.getSettingsHandler().getSettingsManager();
+    public ConnectionListener(DeluxeQueuesPlugin deluxeQueuesPlugin) {
+        this.deluxeQueuesPlugin = deluxeQueuesPlugin;
+        this.queueHandler = deluxeQueuesPlugin.getQueueHandler();
+        this.settingsManager = deluxeQueuesPlugin.getSettingsHandler().getSettingsManager();
     }
 
     @EventHandler(priority = EventPriority.LOW)
