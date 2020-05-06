@@ -1,42 +1,28 @@
-package me.glaremasters.deluxequeues.queues;
+package me.glaremasters.deluxequeues.queues
 
-import ch.jalu.configme.SettingsManager;
-import me.glaremasters.deluxequeues.DeluxeQueues;
-import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
+import ch.jalu.configme.SettingsManager
+import me.glaremasters.deluxequeues.DeluxeQueues
+import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions
+import net.md_5.bungee.api.config.ServerInfo
+import net.md_5.bungee.api.connection.ProxiedPlayer
+import java.util.function.Consumer
 
 /**
  * Created by Glare
  * Date: 7/13/2019
  * Time: 10:31 PM
  */
-public class QueueHandler {
-
-    private List<DeluxeQueue> queues;
-    private List<ServerInfo> servers;
-    private SettingsManager settingsManager;
-    private DeluxeQueues deluxeQueues;
-
-    public QueueHandler(SettingsManager settingsManager, DeluxeQueues deluxeQueues) {
-        this.settingsManager = settingsManager;
-        this.deluxeQueues = deluxeQueues;
-        this.queues = new ArrayList<>();
-        this.servers = new ArrayList<>();
-    }
+class QueueHandler(val settingsManager: SettingsManager, val deluxeQueues: DeluxeQueues) {
+    private val queues = mutableSetOf<DeluxeQueue>()
+    private val servers = mutableSetOf<ServerInfo>()
 
     /**
      * Create a new queue for a server
      * @param queue the new queue
      */
-    public void createQueue(@NotNull DeluxeQueue queue) {
-        if (!queues.contains(queue)) {
-            servers.add(queue.getServer());
-            queues.add(queue);
+    fun createQueue(queue: DeluxeQueue) {
+        if (queues.add(queue)) {
+            servers.add(queue.server)
         }
     }
 
@@ -44,10 +30,9 @@ public class QueueHandler {
      * Delete a queue if it exists
      * @param queue the queue to check
      */
-    public void deleteQueue(@NotNull DeluxeQueue queue) {
-        if (queues.contains(queue)) {
-            servers.remove(queue.getServer());
-            queues.remove(queue);
+    fun deleteQueue(queue: DeluxeQueue) {
+        if (queues.remove(queue)) {
+            servers.remove(queue.server)
         }
     }
 
@@ -56,8 +41,8 @@ public class QueueHandler {
      * @param queue the queue to check
      * @return queue object
      */
-    public DeluxeQueue getQueue(@NotNull DeluxeQueue queue) {
-        return queues.stream().filter(q -> q.equals(queue)).findFirst().orElse(null);
+    fun getQueue(queue: DeluxeQueue): DeluxeQueue? {
+        return queues.firstOrNull { it == queue }
     }
 
     /**
@@ -65,16 +50,20 @@ public class QueueHandler {
      * @param server the server to get the queue from
      * @return the queue
      */
-    public DeluxeQueue getQueue(@NotNull ServerInfo server) {
-        return queues.stream().filter(q -> q.getServer().equals(server)).findFirst().orElse(null);
+    fun getQueue(server: ServerInfo): DeluxeQueue? {
+        return queues.firstOrNull { it.server == server }
     }
 
     /**
      * Remove a player from all queues
      * @param player the player to remove
      */
-    public void clearPlayer(ProxiedPlayer player) {
-        queues.forEach(q -> q.getQueue().remove(player));
+    fun clearPlayer(player: ProxiedPlayer) {
+        queues.forEach {
+            it.queue.removeIf { queuePlayer ->
+                queuePlayer.player == player
+            }
+        }
     }
 
     /**
@@ -82,38 +71,31 @@ public class QueueHandler {
      * @param server the server to check
      * @return if the server has a queue or not
      */
-    public boolean checkForQueue(ServerInfo server) {
-        return servers.contains(server);
+    fun checkForQueue(server: ServerInfo): Boolean {
+        return server in servers
     }
 
     /**
      * Enable all the queues on the server
      */
-    public void enableQueues() {
-        settingsManager.getProperty(ConfigOptions.QUEUE_SERVERS).forEach(s -> {
+    fun enableQueues() {
+        settingsManager.getProperty(ConfigOptions.QUEUE_SERVERS).forEach(Consumer { s: String ->
             try {
-                String[] split = s.split(";");
-                DeluxeQueue queue = new DeluxeQueue(deluxeQueues, deluxeQueues.getProxy().getServerInfo(split[0]), Integer.valueOf(split[1]), Integer.valueOf(split[2]));
-                createQueue(queue);
-            } catch (Exception ex) {
-                deluxeQueues.getLogger().warning("It seems like one of your servers was configured invalidly in the config.");
+                val split = s.split(";".toRegex())
+                val queue = DeluxeQueue(deluxeQueues, deluxeQueues.proxy.getServerInfo(split[0]), split[1].toInt(), split[2].toInt())
+                createQueue(queue)
+            } catch (ex: Exception) {
+                deluxeQueues.logger.warning("It seems like one of your servers was configured invalidly in the config.")
             }
-        });
+        })
     }
 
-    public List<DeluxeQueue> getQueues() {
-        return this.queues;
+    fun getQueues(): Set<DeluxeQueue> {
+        return queues
     }
 
-    public List<ServerInfo> getServers() {
-        return this.servers;
+    fun getServers(): Set<ServerInfo> {
+        return servers
     }
 
-    public SettingsManager getSettingsManager() {
-        return this.settingsManager;
-    }
-
-    public DeluxeQueues getDeluxeQueues() {
-        return this.deluxeQueues;
-    }
 }

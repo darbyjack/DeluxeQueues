@@ -1,8 +1,4 @@
-package me.glaremasters.deluxequeues.utils;
+package me.glaremasters.deluxequeues.utils
 
-public class Constants {
-
-    public static final String BASE_PERM = "deluxequeues.";
-    public static final String ADMIN_PERM = BASE_PERM + ".admin";
-
-}
+const val BASE_PERM = "deluxequeues."
+const val ADMIN_PERM = "$BASE_PERM.admin"

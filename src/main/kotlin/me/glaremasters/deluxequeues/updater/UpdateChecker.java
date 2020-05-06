@@ -33,12 +33,17 @@ import java.util.regex.Pattern;
  */
 public final class UpdateChecker {
 
+    private static final String USER_AGENT = "CHOCO-update-checker";
+    private static final String UPDATE_URL = "https://api.spiget.org/v2/resources/%d/versions?size=1&sort=-releaseDate";
+    private static final Pattern DECIMAL_SCHEME_PATTERN = Pattern.compile("\\d+(?:\\.\\d+)*");
+
     public static final VersionScheme VERSION_SCHEME_DECIMAL = (first, second) -> {
-        String[] firstSplit = splitVersionInfo(first), secondSplit = splitVersionInfo(second);
-        if (firstSplit == null || secondSplit == null) return null;
+        String[] firstSplit = splitVersionInfo(first);
+        String[] secondSplit = splitVersionInfo(second);
 
         for (int i = 0; i < Math.min(firstSplit.length, secondSplit.length); i++) {
-            int currentValue = NumberUtils.toInt(firstSplit[i]), newestValue = NumberUtils.toInt(secondSplit[i]);
+            int currentValue = NumberUtils.toInt(firstSplit[i]);
+            int newestValue = NumberUtils.toInt(secondSplit[i]);
 
             if (newestValue > currentValue) {
                 return second;
@@ -49,23 +54,107 @@ public final class UpdateChecker {
 
         return (secondSplit.length > firstSplit.length) ? second : first;
     };
-
-    private static final String USER_AGENT = "CHOCO-update-checker";
-    private static final String UPDATE_URL = "https://api.spiget.org/v2/resources/%d/versions?size=1&sort=-releaseDate";
-    private static final Pattern DECIMAL_SCHEME_PATTERN = Pattern.compile("\\d+(?:\\.\\d+)*");
-
     private static UpdateChecker instance;
-
-    private UpdateResult lastResult = null;
-
     private final Plugin plugin;
     private final int pluginID;
     private final VersionScheme versionScheme;
+    private UpdateResult lastResult = null;
 
     private UpdateChecker(Plugin plugin, int pluginID, VersionScheme versionScheme) {
         this.plugin = plugin;
         this.pluginID = pluginID;
         this.versionScheme = versionScheme;
+    }
+
+    private static String[] splitVersionInfo(String version) {
+        Matcher matcher = DECIMAL_SCHEME_PATTERN.matcher(version);
+        if (!matcher.find()) return new String[0];
+
+        return matcher.group().split("\\.");
+    }
+
+    /**
+     * Initialize this update checker with the specified values and return its instance. If an instance
+     * of UpdateChecker has already been initialized, this method will act similarly to {@link #get()}
+     * (which is recommended after initialization).
+     *
+     * @param plugin        the plugin for which to check updates. Cannot be null
+     * @param pluginID      the ID of the plugin as identified in the SpigotMC resource link. For example,
+     *                      "https://www.spigotmc.org/resources/veinminer.<b>12038</b>/" would expect "12038" as a value. The
+     *                      value must be greater than 0
+     * @param versionScheme a custom version scheme parser. Cannot be null
+     * @return the UpdateChecker instance
+     */
+    public static UpdateChecker init(Plugin plugin, int pluginID, VersionScheme versionScheme) {
+        Preconditions.checkArgument(plugin != null, "Plugin cannot be null");
+        Preconditions.checkArgument(pluginID > 0, "Plugin ID must be greater than 0");
+        Preconditions.checkArgument(versionScheme != null, "null version schemes are unsupported");
+
+        if (instance == null) instance = new UpdateChecker(plugin, pluginID, versionScheme);
+        return instance;
+    }
+
+    /**
+     * Initialize this update checker with the specified values and return its instance. If an instance
+     * of UpdateChecker has already been initialized, this method will act similarly to {@link #get()}
+     * (which is recommended after initialization).
+     *
+     * @param plugin   the plugin for which to check updates. Cannot be null
+     * @param pluginID the ID of the plugin as identified in the SpigotMC resource link. For example,
+     *                 "https://www.spigotmc.org/resources/veinminer.<b>12038</b>/" would expect "12038" as a value. The
+     *                 value must be greater than 0
+     * @return the UpdateChecker instance
+     */
+    public static UpdateChecker init(Plugin plugin, int pluginID) {
+        return init(plugin, pluginID, VERSION_SCHEME_DECIMAL);
+    }
+
+    /**
+     * invoked, this method will throw an exception.
+     *
+     * @return the UpdateChecker instance
+     */
+    public static UpdateChecker get() {
+        Preconditions.checkState(instance != null, "Instance has not yet been initialized. Be sure #init() has been invoked");
+        return instance;
+    }
+
+    /**
+     * has been invoked) and {@link #get()} is safe to use.
+     *
+     * @return true if initialized, false otherwise
+     */
+    public static boolean isInitialized() {
+        return instance != null;
+    }
+
+    /**
+     * Run the update check for the plugin
+     *
+     * @param settingsManager settings manager
+     */
+    public static void runCheck(DeluxeQueues deluxeQueues, SettingsManager settingsManager) {
+        if (settingsManager.getProperty(ConfigOptions.UPDATE_CHECK)) {
+            UpdateChecker.init(deluxeQueues, 69390).requestUpdateCheck().whenComplete((result, exception) -> {
+                if (result.requiresUpdate()) {
+                    deluxeQueues.getLogger().info(String.format("An update is available! DeluxeQueues %s may be downloaded on SpigotMC", result.getNewestVersion()));
+                    return;
+                }
+                String reason = result.getReason().toString();
+                switch (reason) {
+                    case "UP_TO_DATE":
+                        deluxeQueues.getLogger().info(String.format("Your version of DeluxeQueues (%s) is up to date!", result.getNewestVersion()));
+                        break;
+                    case "UNRELEASED_VERSION":
+                        deluxeQueues.getLogger().info(String.format("Your version of DeluxeQueues (%s) is more recent than the one publicly available. Are you on a development build?", result.getNewestVersion()));
+                        break;
+                    default:
+                        deluxeQueues.getLogger().warning("Could not check for a new version of DeluxeQueues. Reason: " + reason);
+                        break;
+                }
+            });
+        }
+
     }
 
     /**
@@ -76,7 +165,7 @@ public final class UpdateChecker {
      */
     public CompletableFuture<UpdateResult> requestUpdateCheck() {
         return CompletableFuture.supplyAsync(() -> {
-            int responseCode = -1;
+            int responseCode;
             try {
                 URL url = new URL(String.format(UPDATE_URL, pluginID));
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -93,7 +182,8 @@ public final class UpdateChecker {
                 reader.close();
 
                 JsonObject versionObject = element.getAsJsonArray().get(0).getAsJsonObject();
-                String current = plugin.getDescription().getVersion(), newest = versionObject.get("name").getAsString();
+                String current = plugin.getDescription().getVersion();
+                String newest = versionObject.get("name").getAsString();
                 String latest = versionScheme.compareVersions(current, newest);
 
                 if (latest == null) {
@@ -123,93 +213,10 @@ public final class UpdateChecker {
         return lastResult;
     }
 
-    private static String[] splitVersionInfo(String version) {
-        Matcher matcher = DECIMAL_SCHEME_PATTERN.matcher(version);
-        if (!matcher.find()) return null;
-
-        return matcher.group().split("\\.");
-    }
-
-    /**
-     * Initialize this update checker with the specified values and return its instance. If an instance
-     * of UpdateChecker has already been initialized, this method will act similarly to {@link #get()}
-     * (which is recommended after initialization).
-     *
-     * @param plugin the plugin for which to check updates. Cannot be null
-     * @param pluginID the ID of the plugin as identified in the SpigotMC resource link. For example,
-     * "https://www.spigotmc.org/resources/veinminer.<b>12038</b>/" would expect "12038" as a value. The
-     * value must be greater than 0
-     * @param versionScheme a custom version scheme parser. Cannot be null
-     *
-     * @return the UpdateChecker instance
-     */
-    public static UpdateChecker init(Plugin plugin, int pluginID, VersionScheme versionScheme) {
-        Preconditions.checkArgument(plugin != null, "Plugin cannot be null");
-        Preconditions.checkArgument(pluginID > 0, "Plugin ID must be greater than 0");
-        Preconditions.checkArgument(versionScheme != null, "null version schemes are unsupported");
-
-        return (instance == null) ? instance = new UpdateChecker(plugin, pluginID, versionScheme) : instance;
-    }
-
-    /**
-     * Initialize this update checker with the specified values and return its instance. If an instance
-     * of UpdateChecker has already been initialized, this method will act similarly to {@link #get()}
-     * (which is recommended after initialization).
-     *
-     * @param plugin the plugin for which to check updates. Cannot be null
-     * @param pluginID the ID of the plugin as identified in the SpigotMC resource link. For example,
-     * "https://www.spigotmc.org/resources/veinminer.<b>12038</b>/" would expect "12038" as a value. The
-     * value must be greater than 0
-     *
-     * @return the UpdateChecker instance
-     */
-    public static UpdateChecker init(Plugin plugin, int pluginID) {
-        return init(plugin, pluginID, VERSION_SCHEME_DECIMAL);
-    }
-
-    /**
-     * invoked, this method will throw an exception.
-     *
-     * @return the UpdateChecker instance
-     */
-    public static UpdateChecker get() {
-        Preconditions.checkState(instance != null, "Instance has not yet been initialized. Be sure #init() has been invoked");
-        return instance;
-    }
-
-    /**
-     * has been invoked) and {@link #get()} is safe to use.
-     *
-     * @return true if initialized, false otherwise
-     */
-    public static boolean isInitialized() {
-        return instance != null;
-    }
-
-
-    /**
-     * A functional interface to compare two version Strings with similar version schemes.
-     */
-    @FunctionalInterface
-    public static interface VersionScheme {
-
-        /**
-         * Compare two versions and return the higher of the two. If null is returned, it is assumed
-         * that at least one of the two versions are unsupported by this version scheme parser.
-         *
-         * @param first the first version to check
-         * @param second the second version to check
-         *
-         * @return the greater of the two versions. null if unsupported version schemes
-         */
-        public String compareVersions(String first, String second);
-
-    }
-
     /**
      * A constant reason for the result of {@link UpdateResult}.
      */
-    public static enum UpdateReason {
+    public enum UpdateReason {
 
         /**
          * A new update is available for download on SpigotMC.
@@ -252,6 +259,24 @@ public final class UpdateChecker {
          * The plugin is up to date with the version released on SpigotMC's resources section.
          */
         UP_TO_DATE;
+
+    }
+
+    /**
+     * A functional interface to compare two version Strings with similar version schemes.
+     */
+    @FunctionalInterface
+    public interface VersionScheme {
+
+        /**
+         * Compare two versions and return the higher of the two. If null is returned, it is assumed
+         * that at least one of the two versions are unsupported by this version scheme parser.
+         *
+         * @param first  the first version to check
+         * @param second the second version to check
+         * @return the greater of the two versions. null if unsupported version schemes
+         */
+        String compareVersions(String first, String second);
 
     }
 
@@ -304,34 +329,6 @@ public final class UpdateChecker {
          */
         public String getNewestVersion() {
             return newestVersion;
-        }
-
-    }
-
-    /**
-     * Run the update check for the plugin
-     * @param settingsManager settings manager
-     */
-    public static void runCheck(DeluxeQueues deluxeQueues, SettingsManager settingsManager) {
-        if (settingsManager.getProperty(ConfigOptions.UPDATE_CHECK)) {
-            UpdateChecker.init(deluxeQueues, 69390).requestUpdateCheck().whenComplete((result, exception) -> {
-                if (result.requiresUpdate()) {
-                    deluxeQueues.getLogger().info(String.format("An update is available! DeluxeQueues %s may be downloaded on SpigotMC", result.getNewestVersion()));
-                    return;
-                }
-                String reason = result.getReason().toString();
-                switch (reason) {
-                    case "UP_TO_DATE":
-                        deluxeQueues.getLogger().info(String.format("Your version of DeluxeQueues (%s) is up to date!", result.getNewestVersion()));
-                        break;
-                    case "UNRELEASED_VERSION":
-                        deluxeQueues.getLogger().info(String.format("Your version of DeluxeQueues (%s) is more recent than the one publicly available. Are you on a development build?", result.getNewestVersion()));
-                        break;
-                    default:
-                        deluxeQueues.getLogger().warning("Could not check for a new version of DeluxeQueues. Reason: " + reason);
-                        break;
-                }
-            });
         }
 
     }

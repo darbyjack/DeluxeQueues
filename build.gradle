@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+}
+
+group = 'me.glaremasters'
+version = '1.4'
+description = 'DeluxeQueues'
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url 'https://repo.glaremasters.me/repository/public/'
+    }
+    maven {
+        url 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+dependencies {
+    implementation 'ch.jalu:configme:1.1.0'
+    implementation 'com.intellij:annotations:12.0'
+    implementation 'co.aikar:acf-bungee:0.5.0-SNAPSHOT'
+    implementation 'commons-lang:commons-lang:2.6'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    compileOnly 'net.md-5:bungeecord-api:1.13-SNAPSHOT'
+}
+
+shadowJar {
+    minimize()
+    archiveName("${project.description}.jar")
+    relocate 'co.aikar.commands', 'me.glaremasters.deluxequeues.libs.acf'
+    relocate 'co.aikar.locales', 'me.glaremasters.deluxequeues.libs.acf-locales'
+    relocate 'kotlin', 'me.glaremasters.deluxequeues.libs.kotlin'
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}
+
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
+
+compileKotlin {
+    kotlinOptions {
+        javaParameters = true
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
