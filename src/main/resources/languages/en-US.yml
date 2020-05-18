@@ -6,3 +6,5 @@ queues:
   left: "&6You've successfully left the queue!"
 reload:
   success: "&6You've successfully reloaded the configuration!"
+admin:
+  removed: "&6You've successfully removed {player} from their queue!"

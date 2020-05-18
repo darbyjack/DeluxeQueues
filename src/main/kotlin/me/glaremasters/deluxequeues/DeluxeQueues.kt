@@ -41,8 +41,7 @@ class DeluxeQueues : Plugin() {
     private fun loadConf() {
         val file = dataFolder.resolve("config.yml")
 
-        if (!file.exists())
-        {
+        if (!file.exists()) {
             file.parentFile.mkdirs()
             file.createNewFile()
         }
@@ -78,8 +77,7 @@ class DeluxeQueues : Plugin() {
         queueHandler.enableQueues()
     }
 
-    fun conf(): SettingsManager
-    {
+    fun conf(): SettingsManager {
         return checkNotNull(conf)
     }
 }

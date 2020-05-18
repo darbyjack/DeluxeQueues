@@ -10,6 +10,8 @@ import co.aikar.commands.annotation.Dependency
 import co.aikar.commands.annotation.Description
 import co.aikar.commands.annotation.HelpCommand
 import co.aikar.commands.annotation.Subcommand
+import co.aikar.commands.annotation.Syntax
+import co.aikar.commands.bungee.contexts.OnlinePlayer
 import me.glaremasters.deluxequeues.DeluxeQueues
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions
 import me.glaremasters.deluxequeues.messages.Messages
@@ -27,15 +29,24 @@ class CommandDeluxeQueues : BaseCommand() {
     @Subcommand("reload")
     @Description("{@@descriptions.reload}")
     @CommandPermission(ADMIN_PERM)
-    fun execute(issuer: CommandIssuer) {
+    fun reload(issuer: CommandIssuer) {
         settingsManager.reload()
 
         // Update the notify methods for each queue
         queueHandler.getQueues().forEach { queue ->
             queue.notifyMethod = settingsManager.getProperty(ConfigOptions.INFORM_METHOD)
         }
-        
+
         issuer.sendInfo(Messages.RELOAD__SUCCESS)
+    }
+
+    @Subcommand("remove")
+    @Description("{@@descriptions.remove}")
+    @CommandPermission(ADMIN_PERM)
+    @Syntax("<player>")
+    fun remove(issuer: CommandIssuer, player: OnlinePlayer) {
+        queueHandler.clearPlayer(player.player)
+        currentCommandIssuer.sendInfo(Messages.ADMIN__REMOVED, "{player}", player.player.name)
     }
 
     @Subcommand("leave")
