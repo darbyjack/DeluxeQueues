@@ -1,9 +1,7 @@
 package me.glaremasters.deluxequeues.listeners
 
-import ch.jalu.configme.SettingsManager
 import me.glaremasters.deluxequeues.DeluxeQueues
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions
-import me.glaremasters.deluxequeues.queues.QueueHandler
 import net.md_5.bungee.api.event.PlayerDisconnectEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.plugin.Listener
@@ -17,8 +15,8 @@ import net.md_5.bungee.event.EventPriority
  */
 class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
 
-    private val queueHandler: QueueHandler = deluxeQueues.queueHandler
-    private val settingsManager: SettingsManager = deluxeQueues.settingsHandler.settingsManager
+    private val queueHandler = deluxeQueues.queueHandler
+    private val settingsManager = deluxeQueues.settingsHandler.settingsManager
 
     @EventHandler(priority = EventPriority.LOW)
     fun onJoin(event: ServerConnectEvent) {
@@ -37,12 +35,14 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         }
         // Get the queue
         val queue = queueHandler.getQueue(server) ?: return
-        val p = queue.getFromProxy(player)
-        if (p != null && p.isReadyToMove) {
+        // If the queue contains the player move them
+        if (queue.queue.contains(player)) {
             event.isCancelled = false
-            queue.removePlayer(p)
+            queue.removePlayer(player)
             return
         }
+        // They are not in it, check if they can be added
+        // Cancel event and add them to the queue
         if (queue.canAddPlayer()) {
             event.isCancelled = true
             queue.addPlayer(player)

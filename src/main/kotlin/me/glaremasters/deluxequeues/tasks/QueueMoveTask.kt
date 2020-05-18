@@ -29,10 +29,7 @@ class QueueMoveTask(
         // Get the player next in line
         val player = queue.queue.firstOrNull() ?: return
         // Move the player to that server
-        player.player.connect(server)
-        player.isReadyToMove = true
-        /*        // Remove the player from the queue
-        queue.getQueue().pollFirst();*/
+        player.connect(server)
     }
 
 }
