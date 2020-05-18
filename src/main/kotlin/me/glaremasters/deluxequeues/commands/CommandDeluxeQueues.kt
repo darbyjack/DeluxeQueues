@@ -11,6 +11,7 @@ import co.aikar.commands.annotation.Description
 import co.aikar.commands.annotation.HelpCommand
 import co.aikar.commands.annotation.Subcommand
 import me.glaremasters.deluxequeues.DeluxeQueues
+import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions
 import me.glaremasters.deluxequeues.messages.Messages
 import me.glaremasters.deluxequeues.queues.QueueHandler
 import me.glaremasters.deluxequeues.utils.ADMIN_PERM
@@ -28,7 +29,12 @@ class CommandDeluxeQueues : BaseCommand() {
     @CommandPermission(ADMIN_PERM)
     fun execute(issuer: CommandIssuer) {
         settingsManager.reload()
-        deluxeQueues.startQueues()
+
+        // Update the notify methods for each queue
+        queueHandler.getQueues().forEach { queue ->
+            queue.notifyMethod = settingsManager.getProperty(ConfigOptions.INFORM_METHOD)
+        }
+        
         issuer.sendInfo(Messages.RELOAD__SUCCESS)
     }
 

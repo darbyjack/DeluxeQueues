@@ -25,9 +25,9 @@ class DeluxeQueue(
 ) {
     val queue: Deque<QueuePlayer> = LinkedList()
 
-    private val settingsManager: SettingsManager = deluxeQueues.settingsHandler.settingsManager
-    private val delayLength: Int = settingsManager.getProperty(ConfigOptions.DELAY_LENGTH)
-    private val notifyMethod: String = settingsManager.getProperty(ConfigOptions.INFORM_METHOD)
+    private val settingsManager = deluxeQueues.settingsHandler.settingsManager
+    private val delayLength = settingsManager.getProperty(ConfigOptions.DELAY_LENGTH)
+    var notifyMethod = settingsManager.getProperty(ConfigOptions.INFORM_METHOD)
 
     init {
         deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueMoveTask(this, server), 0, delayLength.toLong(), TimeUnit.SECONDS)
