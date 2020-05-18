@@ -3,36 +3,36 @@ package me.glaremasters.deluxequeues.acf
 import ch.jalu.configme.SettingsManager
 import co.aikar.commands.BungeeCommandManager
 import me.glaremasters.deluxequeues.DeluxeQueues
-import me.glaremasters.deluxequeues.commands.CommandHelp
-import me.glaremasters.deluxequeues.commands.CommandLeave
-import me.glaremasters.deluxequeues.commands.CommandReload
+import me.glaremasters.deluxequeues.commands.CommandDeluxeQueues
 import me.glaremasters.deluxequeues.queues.QueueHandler
 import java.io.File
 import java.io.IOException
 import java.util.*
 
-class ACFHandler(private val deluxeQueues: DeluxeQueues, commandManager: BungeeCommandManager) {
+class ACFHandler(private val deluxeQueues: DeluxeQueues, private val commandManager: BungeeCommandManager) {
 
-    fun registerDependencyInjection(commandManager: BungeeCommandManager) {
+
+    fun load() {
+        commandManager.enableUnstableAPI("help")
+
+        loadLang()
+        loadDI()
+
+        commandManager.commandReplacements.addReplacement("dq", "queue|dq|queues")
+
+        loadCommands()
+    }
+
+    private fun loadDI() {
         commandManager.registerDependency(QueueHandler::class.java, deluxeQueues.queueHandler)
         commandManager.registerDependency(SettingsManager::class.java, deluxeQueues.settingsHandler.settingsManager)
     }
 
-    fun registerCommandReplacements(commandManager: BungeeCommandManager) {
-        commandManager.commandReplacements.addReplacement("dq", "queue|dq|queues")
+    private fun loadCommands() {
+        commandManager.registerCommand(CommandDeluxeQueues())
     }
 
-    fun registerCommands(commandManager: BungeeCommandManager) {
-        commandManager.registerCommand(CommandHelp())
-        commandManager.registerCommand(CommandLeave())
-        commandManager.registerCommand(CommandReload())
-    }
-
-    /**
-     * Load all the language files for the plugin
-     * @param commandManager command manager
-     */
-    fun registerLanguages(deluxeQueues: DeluxeQueues, commandManager: BungeeCommandManager) {
+    fun loadLang() {
         try {
             val languageFolder = File(deluxeQueues.dataFolder, "languages")
             val files = languageFolder.listFiles() ?: return
@@ -47,14 +47,5 @@ class ACFHandler(private val deluxeQueues: DeluxeQueues, commandManager: BungeeC
         } catch (e: IOException) {
             e.printStackTrace()
         }
-    }
-
-    init {
-        @Suppress("DEPRECATION")
-        commandManager.enableUnstableAPI("help")
-        registerLanguages(deluxeQueues, commandManager)
-        registerDependencyInjection(commandManager)
-        registerCommandReplacements(commandManager)
-        registerCommands(commandManager)
     }
 }

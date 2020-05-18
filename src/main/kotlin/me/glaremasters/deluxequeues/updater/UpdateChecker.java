@@ -34,16 +34,15 @@ import java.util.regex.Pattern;
 public final class UpdateChecker {
 
     private static final String USER_AGENT = "CHOCO-update-checker";
-    private static final String UPDATE_URL = "https://api.spiget.org/v2/resources/%d/versions?size=1&sort=-releaseDate";
+    private static final String UPDATE_URL = "https://api.spigotmc.org/simple/0.1/index.php?action=getResource&id=%d";
     private static final Pattern DECIMAL_SCHEME_PATTERN = Pattern.compile("\\d+(?:\\.\\d+)*");
 
     public static final VersionScheme VERSION_SCHEME_DECIMAL = (first, second) -> {
-        String[] firstSplit = splitVersionInfo(first);
-        String[] secondSplit = splitVersionInfo(second);
+        String[] firstSplit = splitVersionInfo(first), secondSplit = splitVersionInfo(second);
+        if (firstSplit == null || secondSplit == null) return null;
 
         for (int i = 0; i < Math.min(firstSplit.length, secondSplit.length); i++) {
-            int currentValue = NumberUtils.toInt(firstSplit[i]);
-            int newestValue = NumberUtils.toInt(secondSplit[i]);
+            int currentValue = NumberUtils.toInt(firstSplit[i]), newestValue = NumberUtils.toInt(secondSplit[i]);
 
             if (newestValue > currentValue) {
                 return second;
@@ -54,6 +53,8 @@ public final class UpdateChecker {
 
         return (secondSplit.length > firstSplit.length) ? second : first;
     };
+
+
     private static UpdateChecker instance;
     private final Plugin plugin;
     private final int pluginID;

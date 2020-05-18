@@ -26,8 +26,11 @@ class DeluxeQueues : Plugin() {
         settingsHandler = SettingsHandler(this)
         UpdateChecker.runCheck(this, settingsHandler.settingsManager)
         startQueues()
+
         commandManager = BungeeCommandManager(this)
         acfHandler = ACFHandler(this, commandManager)
+        acfHandler.load()
+
         proxy.pluginManager.registerListener(this, ConnectionListener(this))
     }
 
