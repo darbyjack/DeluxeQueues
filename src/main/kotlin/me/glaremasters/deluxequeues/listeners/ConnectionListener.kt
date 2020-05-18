@@ -16,7 +16,7 @@ import net.md_5.bungee.event.EventPriority
 class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
 
     private val queueHandler = deluxeQueues.queueHandler
-    private val settingsManager = deluxeQueues.settingsHandler.settingsManager
+    private val settingsManager = deluxeQueues.conf()
 
     @EventHandler(priority = EventPriority.LOW)
     fun onJoin(event: ServerConnectEvent) {

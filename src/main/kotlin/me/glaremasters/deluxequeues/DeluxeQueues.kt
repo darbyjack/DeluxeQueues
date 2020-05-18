@@ -1,8 +1,9 @@
 package me.glaremasters.deluxequeues
 
+import ch.jalu.configme.SettingsManager
 import co.aikar.commands.BungeeCommandManager
 import me.glaremasters.deluxequeues.acf.ACFHandler
-import me.glaremasters.deluxequeues.configuration.SettingsHandler
+import me.glaremasters.deluxequeues.configuration.DeluxeQueuesConfiguration
 import me.glaremasters.deluxequeues.listeners.ConnectionListener
 import me.glaremasters.deluxequeues.queues.QueueHandler
 import me.glaremasters.deluxequeues.updater.UpdateChecker
@@ -13,8 +14,7 @@ class DeluxeQueues : Plugin() {
     private lateinit var commandManager: BungeeCommandManager
     private lateinit var acfHandler: ACFHandler
 
-    lateinit var settingsHandler: SettingsHandler
-        private set
+    private var conf = null as? SettingsManager?
 
     lateinit var queueHandler: QueueHandler
         private set
@@ -23,8 +23,8 @@ class DeluxeQueues : Plugin() {
         saveFile("config.yml")
         saveFile("languages/en-US.yml")
 
-        settingsHandler = SettingsHandler(this)
-        UpdateChecker.runCheck(this, settingsHandler.settingsManager)
+        loadConf()
+        UpdateChecker.runCheck(this, conf())
         startQueues()
 
         commandManager = BungeeCommandManager(this)
@@ -36,6 +36,18 @@ class DeluxeQueues : Plugin() {
 
     override fun onDisable() {
         // Plugin shutdown logic
+    }
+
+    private fun loadConf() {
+        val file = dataFolder.resolve("config.yml")
+
+        if (!file.exists())
+        {
+            file.parentFile.mkdirs()
+            file.createNewFile()
+        }
+
+        this.conf = DeluxeQueuesConfiguration(file)
     }
 
     /**
@@ -62,7 +74,12 @@ class DeluxeQueues : Plugin() {
     }
 
     fun startQueues() {
-        queueHandler = QueueHandler(settingsHandler.settingsManager, this)
+        queueHandler = QueueHandler(conf(), this)
         queueHandler.enableQueues()
+    }
+
+    fun conf(): SettingsManager
+    {
+        return checkNotNull(conf)
     }
 }

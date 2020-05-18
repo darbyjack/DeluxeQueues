@@ -25,7 +25,7 @@ class ACFHandler(private val deluxeQueues: DeluxeQueues, private val commandMana
 
     private fun loadDI() {
         commandManager.registerDependency(QueueHandler::class.java, deluxeQueues.queueHandler)
-        commandManager.registerDependency(SettingsManager::class.java, deluxeQueues.settingsHandler.settingsManager)
+        commandManager.registerDependency(SettingsManager::class.java, deluxeQueues.conf())
     }
 
     private fun loadCommands() {
