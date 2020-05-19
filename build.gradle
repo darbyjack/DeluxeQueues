@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'me.glaremasters'
-version = '1.4'
+version = '2.0'
 description = 'DeluxeQueues'
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 

@@ -36,14 +36,14 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         // Get the queue
         val queue = queueHandler.getQueue(server) ?: return
         // If the queue contains the player move them
-        if (queue.queue.contains(player)) {
+        if (queue.queue.contains(player) && event.reason != ServerConnectEvent.Reason.COMMAND) {
             event.isCancelled = false
             queue.removePlayer(player)
             return
         }
         // They are not in it, check if they can be added
         // Cancel event and add them to the queue
-        if (queue.canAddPlayer()) {
+        if (!queue.queue.contains(player) && queue.canAddPlayer()) {
             event.isCancelled = true
             queue.addPlayer(player)
         }
