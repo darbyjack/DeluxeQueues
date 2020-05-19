@@ -2,6 +2,7 @@ package me.glaremasters.deluxequeues.tasks
 
 import me.glaremasters.deluxequeues.queues.DeluxeQueue
 import net.md_5.bungee.api.config.ServerInfo
+import net.md_5.bungee.api.event.ServerConnectEvent
 
 /**
  * Created by Glare
@@ -29,7 +30,7 @@ class QueueMoveTask(
         // Get the player next in line
         val player = queue.queue.firstOrNull() ?: return
         // Move the player to that server
-        player.connect(server)
+        player.connect(server, ServerConnectEvent.Reason.PLUGIN)
     }
 
 }

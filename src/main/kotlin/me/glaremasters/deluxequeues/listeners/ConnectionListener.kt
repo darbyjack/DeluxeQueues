@@ -36,7 +36,7 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         // Get the queue
         val queue = queueHandler.getQueue(server) ?: return
         // If the queue contains the player move them
-        if (queue.queue.contains(player) && event.reason != ServerConnectEvent.Reason.COMMAND) {
+        if (queue.queue.contains(player) && event.reason == ServerConnectEvent.Reason.PLUGIN) {
             event.isCancelled = false
             queue.removePlayer(player)
             return
@@ -46,7 +46,10 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         if (!queue.queue.contains(player) && queue.canAddPlayer()) {
             event.isCancelled = true
             queue.addPlayer(player)
+            return
         }
+        // Cancel by default? (Hopefully this doesn't break anything. Yell at BrettPlayMC if it does.)
+        event.isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.LOW)
