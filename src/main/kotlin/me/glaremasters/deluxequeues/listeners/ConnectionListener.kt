@@ -28,6 +28,10 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         val server = event.target
         // Get the player in the event
         val player = event.player
+        // Check if same server. Cancel if it is.
+        if (player.server.info == server) {
+            return
+        }
         // Create a boolean for bypass with staff
         val bypass = player.hasPermission(settingsManager.getProperty(ConfigOptions.STAFF_PERMISSION))
         if (bypass) {
