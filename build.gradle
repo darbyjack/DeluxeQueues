@@ -22,13 +22,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'ch.jalu:configme:1.1.0'
+    implementation 'ch.jalu:configme:1.2.0'
     implementation 'com.intellij:annotations:12.0'
     implementation 'co.aikar:acf-bungee:0.5.0-SNAPSHOT'
     implementation 'commons-lang:commons-lang:2.6'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    compileOnly 'net.md-5:bungeecord-api:1.13-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-api:1.15-SNAPSHOT'
 }
 
 shadowJar {
