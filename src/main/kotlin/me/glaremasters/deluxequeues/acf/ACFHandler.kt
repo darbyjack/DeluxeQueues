@@ -7,7 +7,7 @@ import me.glaremasters.deluxequeues.commands.CommandDeluxeQueues
 import me.glaremasters.deluxequeues.queues.QueueHandler
 import java.io.File
 import java.io.IOException
-import java.util.*
+import java.util.Locale
 
 class ACFHandler(private val deluxeQueues: DeluxeQueues, private val commandManager: BungeeCommandManager) {
 

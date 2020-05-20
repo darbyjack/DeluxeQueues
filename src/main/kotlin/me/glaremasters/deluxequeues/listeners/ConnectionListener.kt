@@ -41,9 +41,14 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
             queue.removePlayer(player)
             return
         }
+        // If there aren't enough players on the server yet to start the queue
+        // let them through
+        if (!queue.canAddPlayer()) {
+            return
+        }
         // They are not in it, check if they can be added
         // Cancel event and add them to the queue
-        if (!queue.queue.contains(player) && queue.canAddPlayer()) {
+        if (!queue.queue.contains(player)) {
             event.isCancelled = true
             queue.addPlayer(player)
             return
