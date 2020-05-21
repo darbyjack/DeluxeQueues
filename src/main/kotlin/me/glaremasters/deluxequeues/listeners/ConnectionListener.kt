@@ -29,7 +29,7 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         // Get the player in the event
         val player = event.player
         // Check if same server. Cancel if it is.
-        if (player.server.info == server) {
+        if (player.server == server) {
             return
         }
         // Create a boolean for bypass with staff
@@ -40,7 +40,7 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         // Get the queue
         val queue = queueHandler.getQueue(server) ?: return
         // If the queue contains the player move them
-        if (queue.queue.contains(player) && event.reason == ServerConnectEvent.Reason.PLUGIN) {
+        if (queue.players.contains(player) && event.reason == ServerConnectEvent.Reason.PLUGIN) {
             event.isCancelled = false
             queue.removePlayer(player)
             return
@@ -52,7 +52,7 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         }
         // They are not in it, check if they can be added
         // Cancel event and add them to the queue
-        if (!queue.queue.contains(player)) {
+        if (!queue.players.contains(player)) {
             event.isCancelled = true
             queue.addPlayer(player)
             return

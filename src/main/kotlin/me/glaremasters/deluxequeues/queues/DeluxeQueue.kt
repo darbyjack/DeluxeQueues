@@ -23,7 +23,7 @@ data class DeluxeQueue(
         private val playersRequired: Int,
         val maxSlots: Int
 ) {
-    val queue: Deque<ProxiedPlayer> = LinkedList()
+    val players: Deque<ProxiedPlayer> = LinkedList()
 
     private val settingsManager = deluxeQueues.conf()
     private var delayLength: Int = -1 //Effectively lateinit
@@ -41,14 +41,14 @@ data class DeluxeQueue(
 
     fun addPlayer(player: ProxiedPlayer) {
         if (player.hasPermission(settingsManager.getProperty(ConfigOptions.DONATOR_PERMISSION))) {
-            queue.addFirst(player)
+            players.addFirst(player)
         } else {
-            queue.add(player)
+            players.add(player)
         }
     }
 
     fun removePlayer(player: ProxiedPlayer) {
-        queue.remove(player)
+        players.remove(player)
     }
 
     /**
@@ -60,7 +60,7 @@ data class DeluxeQueue(
     }
 
     private fun getQueuePosition(player: ProxiedPlayer): Int {
-        return queue.indexOf(player)
+        return players.indexOf(player)
     }
 
     /**
@@ -76,7 +76,7 @@ data class DeluxeQueue(
         fun applyPlaceholders(message: String): String {
             return message
                     .replace("{pos}", (getQueuePosition(player) + 1).toString())
-                    .replace("{total}", queue.size.toString())
+                    .replace("{total}", players.size.toString())
         }
 
         when (notifyMethod.toLowerCase()) {

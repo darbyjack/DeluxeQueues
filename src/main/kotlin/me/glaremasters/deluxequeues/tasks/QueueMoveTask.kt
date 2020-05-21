@@ -16,19 +16,19 @@ class QueueMoveTask(
 
     override fun run() {
         // Make sure the queue isn't empty
-        if (queue.queue.isEmpty()) {
+        if (queue.players.isEmpty()) {
             return
         }
 
         // Persist the notification to the user
-        queue.queue.forEach(queue::notifyPlayer)
+        queue.players.forEach(queue::notifyPlayer)
 
         // Check if the max amount of players on the server are the max slots
         if (queue.server.players.size >= queue.maxSlots) {
             return
         }
         // Get the player next in line
-        val player = queue.queue.firstOrNull() ?: return
+        val player = queue.players.firstOrNull() ?: return
         // Move the player to that server
         player.connect(server, ServerConnectEvent.Reason.PLUGIN)
     }
