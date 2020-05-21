@@ -29,7 +29,7 @@ class ConnectionListener(deluxeQueues: DeluxeQueues) : Listener {
         // Get the player in the event
         val player = event.player
         // Check if same server. Cancel if it is.
-        if (player.server == server) {
+        if (player.server.info == server) {
             return
         }
         // Create a boolean for bypass with staff
