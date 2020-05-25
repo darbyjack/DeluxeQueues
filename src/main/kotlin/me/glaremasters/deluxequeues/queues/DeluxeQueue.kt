@@ -88,7 +88,8 @@ data class DeluxeQueue(
             }
             "title" -> {
                 val title = deluxeQueues.proxy.createTitle()
-                title.title(TextComponent(titleTop.color()))
+                val top = applyPlaceholders(titleTop).color()
+                title.title(TextComponent(top))
                 val bottom = applyPlaceholders(titleBottom).color()
                 title.subTitle(TextComponent(bottom))
                 player.sendTitle(title)
