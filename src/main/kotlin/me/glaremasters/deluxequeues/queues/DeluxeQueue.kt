@@ -28,18 +28,19 @@ data class DeluxeQueue(
 
     private val settingsManager = deluxeQueues.conf()
     private var delayLength: Int = -1 //Effectively lateinit
-    private var notifyLength: Int = 1
+    private var notifyDelayLength: Int = -1
     lateinit var notifyMethod: String
 
     init {
         loadConfiguration()
         deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueMoveTask(this, server), 0, delayLength.toLong(), TimeUnit.SECONDS)
-        deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueNotifyTask(this), 0, notifyLength.toLong(), TimeUnit.SECONDS)
+        deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueNotifyTask(this), 0, notifyDelayLength.toLong(), TimeUnit.SECONDS)
     }
 
     fun loadConfiguration() {
         delayLength = settingsManager.getProperty(ConfigOptions.DELAY_LENGTH)
         notifyMethod = settingsManager.getProperty(ConfigOptions.INFORM_METHOD)
+        notifyDelayLength = settingsManager.getProperty(ConfigOptions.NOTIFY_DELAY_LENGTH)
     }
 
     fun addPlayer(player: ProxiedPlayer) {

@@ -31,7 +31,11 @@ internal object ConfigOptions : SettingsHolder {
 
     @JvmField
     @Comment("How many seconds should be in between each queue movement?")
-    val DELAY_LENGTH: Property<Int> = PropertyInitializer.newProperty("settings.delay-length", 2)
+    val DELAY_LENGTH: Property<Int> = PropertyInitializer.newProperty("settings.delay-length", 5)
+    
+    @JvmField
+    @Comment("How often (in seconds) should the plugin notify a player of their queue position?")
+    val NOTIFY_DELAY_LENGTH: Property<Int> = PropertyInitializer.newProperty("settings.notify-delay-length", 2)
 
     @JvmField
     @Comment(
