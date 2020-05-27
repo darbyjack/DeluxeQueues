@@ -3,6 +3,7 @@ package me.glaremasters.deluxequeues.queues
 import me.glaremasters.deluxequeues.DeluxeQueues
 import me.glaremasters.deluxequeues.configuration.sections.ConfigOptions
 import me.glaremasters.deluxequeues.tasks.QueueMoveTask
+import me.glaremasters.deluxequeues.tasks.QueueNotifyTask
 import me.glaremasters.deluxequeues.utils.color
 import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.TextComponent
@@ -27,11 +28,13 @@ data class DeluxeQueue(
 
     private val settingsManager = deluxeQueues.conf()
     private var delayLength: Int = -1 //Effectively lateinit
+    private var notifyLength: Int = 1
     lateinit var notifyMethod: String
 
     init {
         loadConfiguration()
         deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueMoveTask(this, server), 0, delayLength.toLong(), TimeUnit.SECONDS)
+        deluxeQueues.proxy.scheduler.schedule(deluxeQueues, QueueNotifyTask(this), 0, notifyLength.toLong(), TimeUnit.SECONDS)
     }
 
     fun loadConfiguration() {

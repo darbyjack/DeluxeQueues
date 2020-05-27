@@ -20,9 +20,6 @@ class QueueMoveTask(
             return
         }
 
-        // Persist the notification to the user
-        queue.players.forEach(queue::notifyPlayer)
-
         // Check if the max amount of players on the server are the max slots
         if (queue.server.players.size >= queue.maxSlots) {
             return
