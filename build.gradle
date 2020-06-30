@@ -28,7 +28,7 @@ dependencies {
     implementation 'commons-lang:commons-lang:2.6'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    compileOnly 'net.md-5:bungeecord-api:1.15-SNAPSHOT'
+    compileOnly 'net.md-5:bungeecord-api:1.16-R0.1-SNAPSHOT'
 }
 
 shadowJar {
